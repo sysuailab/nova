@@ -275,9 +275,10 @@ class HostState(object):
         return dict((st['key'], st['value']) for st in stats)
 
     def __repr__(self):
-        return ("(%s, %s) ram:%s disk:%s io_ops:%s instances:%s" %
-                (self.host, self.nodename, self.free_ram_mb, self.free_disk_mb,
-                 self.num_io_ops, self.num_instances))
+        return ("(%s, %s) total_ram:%s free_ram:%s  free_disk:%s total_vcpus:%s free_vcpus:%s io_ops:%s instances:%s vm_type:%s" %
+                (self.host, self.nodename, self.total_usable_ram_mb,self.free_ram_mb, 
+                 self.free_disk_mb,self.vcpus_total,(self.vcpus_total-self.vcpus_used),
+                 self.num_io_ops, self.num_instances, self.allowed_vm_type))
 
 
 class HostManager(object):
