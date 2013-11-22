@@ -119,6 +119,7 @@ class HostState(object):
         self.vm_states = {}
         self.task_states = {}
         self.num_instances = 0
+        self.instances=[]
         self.num_instances_by_project = {}
         self.num_instances_by_os_type = {}
         self.num_io_ops = 0
@@ -275,10 +276,10 @@ class HostState(object):
         return dict((st['key'], st['value']) for st in stats)
 
     def __repr__(self):
-        return ("(%s, %s) total_ram:%s free_ram:%s  free_disk:%s total_vcpus:%s free_vcpus:%s io_ops:%s instances:%s vm_type:%s" %
+        return ("(%s, %s) total_ram:%s free_ram:%s  free_disk:%s total_vcpus:%s free_vcpus:%s io_ops:%s num_instances:%s instances:%s vm_type:%s" %
                 (self.host, self.nodename, self.total_usable_ram_mb,self.free_ram_mb, 
                  self.free_disk_mb,self.vcpus_total,(self.vcpus_total-self.vcpus_used),
-                 self.num_io_ops, self.num_instances, self.allowed_vm_type))
+                 self.num_io_ops, self.num_instances, self.instances,self.allowed_vm_type))
 
 
 class HostManager(object):
@@ -440,13 +441,20 @@ class HostManager(object):
             state_key = (host, node)
             capabilities = self.service_states.get(state_key, None)
             host_state = self.host_state_map.get(state_key)
+            vms=db.instance_get_all_by_host(context,host)
             if host_state:
+                host_state.instances=[]
+                for vm in vms:
+                    host_state.instances.append(vm)   
                 host_state.update_capabilities(capabilities,
                                                dict(service.iteritems()))
             else:
                 host_state = self.host_state_cls(host, node,
                         capabilities=capabilities,
                         service=dict(service.iteritems()))
+                host_state.instances=[]
+                for vm in vms:
+                    host_state.instances.append(vm)
                 self.host_state_map[state_key] = host_state
             host_state.update_from_compute_node(compute)
             seen_nodes.add(state_key)
